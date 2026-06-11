@@ -5,18 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Barber Shop - Premium Salon{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <!-- Header -->
     <header>
         <nav class="navbar">
-            <div class="logo">BARBER SHOP</div>
+            <div class="logo">
+                <img src="{{ url_for('static', filename='slike/logo.png') }}" alt="Logo" style="height: 40px; margin-right: 10px; vertical-align: middle;">
+                BARBER SHOP
+            </div>
             <ul class="nav-links">
                 <li><a href="{{ url_for('index') }}">Početna</a></li>
                 {% if current_user %}
                     {% if current_user['role'] == 'admin' %}
                         <li class="dropdown">
-                            <a href="#">Admin Panel ▼</a>
+                            <a href="#">Admin Panel</a>
                             <div class="dropdown-content">
                                 <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
                                 <a href="{{ url_for('admin.workers') }}">Radnici</a>
@@ -27,7 +31,7 @@
                         </li>
                     {% else %}
                         <li class="dropdown">
-                            <a href="#">Moj Profil ▼</a>
+                            <a href="#">Moj Profil</a>
                             <div class="dropdown-content">
                                 <a href="{{ url_for('user.home') }}">Početna</a>
                                 <a href="{{ url_for('user.appointments') }}">Moji Termini</a>
@@ -73,20 +77,20 @@
                 <h4>Linkovi</h4>
                 <a href="{{ url_for('index') }}">Početna</a>
                 <a href="{{ url_for('contact') }}">Kontakt</a>
-                <a href="#">Uslovi korišćenja</a>
-                <a href="#">Privatnost</a>
+                <a href="{{ url_for('terms') }}">Uslovi korišćenja</a>
+                <a href="{{ url_for('privacy') }}">Privatnost</a>
             </div>
             <div class="footer-section">
                 <h4>Pratite Nas</h4>
                 <div class="social-links">
-                    <a href="https://instagram.com" target="_blank" title="Instagram">📱</a>
-                    <a href="https://facebook.com" target="_blank" title="Facebook">f</a>
-                    <a href="https://twitter.com" target="_blank" title="Twitter">𝕏</a>
+                    <a href="https://instagram.com" target="_blank" title="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="https://facebook.com" target="_blank" title="Facebook"><i class="fab fa-facebook"></i></a>
+                    <a href="https://twitter.com" target="_blank" title="Twitter"><i class="fab fa-twitter"></i></a>
                 </div>
             </div>
         </div>
         <hr style="margin-top: 2rem; border: none; border-top: 1px solid #333;">
-        <p style="text-align: center; margin-top: 1rem; opacity: 0.8;">© 2026 Barber Shop. Sva prava zadržana.</p>
+        <p style="text-align: center; margin-top: 1rem; opacity: 0.8;">Copyright 2026 Barber Shop. Sva prava zadržana.</p>
     </footer>
 
     <script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
