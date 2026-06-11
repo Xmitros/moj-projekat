@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Barber Shop - Premium Salon{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <nav class="navbar">
+            <div class="logo">BARBER SHOP</div>
+            <ul class="nav-links">
+                <li><a href="{{ url_for('index') }}">Početna</a></li>
+                {% if current_user %}
+                    {% if current_user['role'] == 'admin' %}
+                        <li class="dropdown">
+                            <a href="#">Admin Panel ▼</a>
+                            <div class="dropdown-content">
+                                <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+                                <a href="{{ url_for('admin.workers') }}">Radnici</a>
+                                <a href="{{ url_for('admin.appointments') }}">Termini</a>
+                                <a href="{{ url_for('admin.help_requests') }}">Pomoć</a>
+                                <a href="{{ url_for('admin.notifications') }}">Notifikacije</a>
+                            </div>
+                        </li>
+                    {% else %}
+                        <li class="dropdown">
+                            <a href="#">Moj Profil ▼</a>
+                            <div class="dropdown-content">
+                                <a href="{{ url_for('user.home') }}">Početna</a>
+                                <a href="{{ url_for('user.appointments') }}">Moji Termini</a>
+                                <a href="{{ url_for('user.profile') }}">Profil</a>
+                            </div>
+                        </li>
+                    {% endif %}
+                    <li><a href="{{ url_for('auth.logout') }}">Odjava</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('auth.login') }}">Prijava</a></li>
+                {% endif %}
+                <li><a href="{{ url_for('contact') }}">Kontakt</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- AI Chatbot Widget -->
+    <div class="chatbot-widget" id="chatbot-widget" style="display: flex;">
+        <div class="chatbot-header">
+            <span>AI Podrška</span>
+            <button class="chatbot-close">&times;</button>
+        </div>
+        <div class="chatbot-messages"></div>
+        <div class="chatbot-input">
+            <input type="text" placeholder="Pitajte nešto...">
+            <button>Pošalji</button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>O Nama</h4>
+                <p>Barber Shop - Vaš premium salon za muške frizure i brijanje.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Linkovi</h4>
+                <a href="{{ url_for('index') }}">Početna</a>
+                <a href="{{ url_for('contact') }}">Kontakt</a>
+                <a href="#">Uslovi korišćenja</a>
+                <a href="#">Privatnost</a>
+            </div>
+            <div class="footer-section">
+                <h4>Pratite Nas</h4>
+                <div class="social-links">
+                    <a href="https://instagram.com" target="_blank" title="Instagram">📱</a>
+                    <a href="https://facebook.com" target="_blank" title="Facebook">f</a>
+                    <a href="https://twitter.com" target="_blank" title="Twitter">𝕏</a>
+                </div>
+            </div>
+        </div>
+        <hr style="margin-top: 2rem; border: none; border-top: 1px solid #333;">
+        <p style="text-align: center; margin-top: 1rem; opacity: 0.8;">© 2026 Barber Shop. Sva prava zadržana.</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
