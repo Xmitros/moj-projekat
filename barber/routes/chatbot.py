@@ -5,7 +5,7 @@ Odgovara na često postavljana pitanja
 
 from flask import Blueprint, request, jsonify, session
 from database import get_db
-import re
+from datetime import datetime
 
 chatbot_bp = Blueprint('chatbot', __name__)
 
@@ -70,16 +70,6 @@ def ask_chatbot():
         response = AI_RESPONSES.get(intent, 
             "Izvinjavam se, nisam siguran. Molim kontaktirajte administratora za detaljnu pomoć.")
         
-        # Sacuva u bazu ako je zalogovan korisnik
-        if 'user_id' in session:
-            conn = get_db()
-            conn.execute(
-                "INSERT INTO ai_chat_logs (user_id, question, answer, category) VALUES (?, ?, ?, ?)",
-                (session['user_id'], user_message, response, intent)
-            )
-            conn.commit()
-            conn.close()
-        
         return jsonify({
             'status': 'success',
             'answer': response,
@@ -111,23 +101,3 @@ def get_faq():
             'status': 'error',
             'message': str(e)
         }), 500
-
-# Kreiraj tabelu ako ne postoji
-def init_chatbot_table():
-    """Kreiraj ai_chat_logs tabelu"""
-    conn = get_db()
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS ai_chat_logs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            question TEXT NOT NULL,
-            answer TEXT NOT NULL,
-            category TEXT,
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id)
-        )
-    """)
-    conn.commit()
-    conn.close()
-
-init_chatbot_table()

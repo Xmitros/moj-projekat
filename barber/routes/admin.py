@@ -75,7 +75,7 @@ def workers():
 @admin_bp.route('/worker/<int:worker_id>/leaves')
 @login_required
 def worker_leaves(worker_id):
-    """Upravljanje odmorima radnika - NOVO SA START/END DATUMIMA"""
+    """Upravljanje odmorima radnika - SA START/END DATUMIMA"""
     conn = get_db()
     
     worker = conn.execute("SELECT * FROM workers WHERE id = ?", (worker_id,)).fetchone()
