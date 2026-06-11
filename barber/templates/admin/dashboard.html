@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Barber Shop{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 2rem auto; padding: 0 2rem;">
+    <h1 style="font-family: Calibri; margin-bottom: 2rem;">Admin Dashboard</h1>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+        <div class="card" style="text-align: center;">
+            <h3 style="font-size: 2rem; color: #1a1a1a;">{{ appointments_today }}</h3>
+            <p>Termini Danas</p>
+        </div>
+        <div class="card" style="text-align: center;">
+            <h3 style="font-size: 2rem; color: #1a1a1a;">{{ "%.2f"|format(total_revenue) }}</h3>
+            <p>Ukupan Prihod</p>
+        </div>
+        <div class="card" style="text-align: center;">
+            <h3 style="font-size: 2rem; color: #1a1a1a;">{{ workers_count }}</h3>
+            <p>Aktivnih Radnika</p>
+        </div>
+        <div class="card" style="text-align: center; position: relative;">
+            <h3 style="font-size: 2rem; color: #1a1a1a;">{{ unread_count }}</h3>
+            <p>Nove Notifikacije</p>
+            {% if unread_count > 0 %}
+            <div class="notification-badge">{{ unread_count }}</div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+        <a href="{{ url_for('admin.workers') }}" class="btn btn-primary" style="display: block; text-align: center; padding: 1rem;">Upravljanje Radnicima</a>
+        <a href="{{ url_for('admin.appointments') }}" class="btn btn-primary" style="display: block; text-align: center; padding: 1rem;">Svi Termini</a>
+        <a href="{{ url_for('admin.notifications') }}" class="btn btn-primary" style="display: block; text-align: center; padding: 1rem;">Notifikacije</a>
+        <a href="{{ url_for('admin.help_requests') }}" class="btn btn-primary" style="display: block; text-align: center; padding: 1rem;">Help Zahtjevi</a>
+    </div>
+    
+    {% if notifications %}
+    <h2 style="font-family: Calibri; margin-bottom: 1rem;">Nedavne Notifikacije</h2>
+    <div style="background-color: white; border: 1px solid #ddd; border-radius: 8px; padding: 1.5rem;">
+        {% for notif in notifications %}
+        <div style="padding: 1rem; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <p>{{ notif['message'] }}</p>
+                <small style="color: #999;">{{ notif['created_at'] }}</small>
+            </div>
+            {% if not notif['is_read'] %}
+            <span class="notification-badge">!</span>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

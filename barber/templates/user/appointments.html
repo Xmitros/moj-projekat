@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Moji Termini - Barber Shop{% endblock %}
+
+{% block content %}
+<div style="max-width: 1000px; margin: 2rem auto; padding: 0 2rem;">
+    <h1 style="font-family: Calibri; margin-bottom: 2rem;">Moji Termini</h1>
+    
+    {% if appointments %}
+    <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd;">
+        <tr style="background-color: #1a1a1a; color: white;">
+            <th style="padding: 1rem; text-align: left;">Datum</th>
+            <th style="padding: 1rem; text-align: left;">Vrijeme</th>
+            <th style="padding: 1rem; text-align: left;">Barber</th>
+            <th style="padding: 1rem; text-align: left;">Usluga</th>
+            <th style="padding: 1rem; text-align: left;">Cijena</th>
+            <th style="padding: 1rem; text-align: left;">Status</th>
+            <th style="padding: 1rem; text-align: center;">Akcija</th>
+        </tr>
+        {% for appointment in appointments %}
+        <tr style="border-bottom: 1px solid #ddd;">
+            <td style="padding: 1rem;">{{ appointment['appointment_date'] }}</td>
+            <td style="padding: 1rem;">{{ appointment['appointment_time'] }}</td>
+            <td style="padding: 1rem;">{{ appointment['worker_name'] }}</td>
+            <td style="padding: 1rem;">{{ appointment['service'] }}</td>
+            <td style="padding: 1rem;">{{ appointment['price'] }} {{ appointment['currency'] }}</td>
+            <td style="padding: 1rem;">
+                <span style="padding: 0.5rem 1rem; border-radius: 5px; {% if appointment['status'] == 'zakazano' %}background-color: #90EE90; color: #333;{% elif appointment['status'] == 'otkazano' %}background-color: #FFB6C6; color: #333;{% else %}background-color: #87CEEB; color: white;{% endif %}">
+                    {{ appointment['status'] }}
+                </span>
+            </td>
+            <td style="padding: 1rem; text-align: center;">
+                {% if appointment['status'] == 'zakazano' %}
+                    <button onclick="cancelAppointment({{ appointment['id'] }})" class="btn btn-danger" style="padding: 0.5rem 1rem;">Otkaži</button>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p style="text-align: center; color: #999; font-size: 1.1rem;">Nemaš ni jedan zakazan termin</p>
+    <div style="text-align: center;">
+        <a href="{{ url_for('user.home') }}" class="btn btn-primary">Zakaži Termin</a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function cancelAppointment(appointmentId) {
+    if (!confirm('Sigurno želiš da otkazeš ovaj termin?')) return;
+    
+    fetch('/api/cancel-appointment/' + appointmentId, {method: 'POST'})
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert('Termin otkazan!');
+            location.reload();
+        } else {
+            alert('Greška: ' + data.message);
+        }
+    });
+}
+</script>
+{% endblock %}

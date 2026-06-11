@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Profil - Barber Shop{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 2rem auto; padding: 0 2rem;">
+    <h1 style="font-family: Calibri; margin-bottom: 2rem;">Moj Profil</h1>
+    
+    <div style="background-color: white; border: 1px solid #ddd; border-radius: 8px; padding: 2rem;">
+        <div style="margin-bottom: 1.5rem;">
+            <label style="font-weight: bold;">Korisničko Ime:</label>
+            <p>{{ user['username'] }}</p>
+        </div>
+        
+        <div style="margin-bottom: 1.5rem;">
+            <label style="font-weight: bold;">Puno Ime:</label>
+            <p>{{ user['full_name'] }}</p>
+        </div>
+        
+        <div style="margin-bottom: 1.5rem;">
+            <label style="font-weight: bold;">Telefon:</label>
+            <p>{{ user['phone'] or 'Nije unesen' }}</p>
+        </div>
+        
+        <div style="margin-bottom: 1.5rem;">
+            <label style="font-weight: bold;">Valuta:</label>
+            <select id="currency" onchange="updateCurrency()" style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 5px;">
+                <option value="EUR" {% if user['currency'] == 'EUR' %}selected{% endif %}>EUR (Eura)</option>
+                <option value="RSD" {% if user['currency'] == 'RSD' %}selected{% endif %}>RSD (Srpski Dinar)</option>
+            </select>
+        </div>
+        
+        <div style="margin-bottom: 1.5rem;">
+            <label style="font-weight: bold;">Član od:</label>
+            <p>{{ user['created_at'] }}</p>
+        </div>
+        
+        <div style="display: flex; gap: 1rem;">
+            <a href="{{ url_for('user.home') }}" class="btn btn-primary">Nazad</a>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateCurrency() {
+    const currency = document.getElementById('currency').value;
+    fetch('/user/api/update-currency', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({currency})
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert('Valuta ažurirana!');
+        }
+    });
+}
+</script>
+{% endblock %}

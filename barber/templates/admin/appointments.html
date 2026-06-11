@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Termini - Admin - Barber Shop{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 2rem auto; padding: 0 2rem;">
+    <h1 style="font-family: Calibri; margin-bottom: 2rem;">Svi Termini</h1>
+    
+    {% if appointments %}
+    <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd; overflow-x: auto;">
+        <tr style="background-color: #1a1a1a; color: white;">
+            <th style="padding: 1rem; text-align: left; font-size: 0.9rem;">Datum</th>
+            <th style="padding: 1rem; text-align: left; font-size: 0.9rem;">Vrijeme</th>
+            <th style="padding: 1rem; text-align: left; font-size: 0.9rem;">Korisnik</th>
+            <th style="padding: 1rem; text-align: left; font-size: 0.9rem;">Barber</th>
+            <th style="padding: 1rem; text-align: left; font-size: 0.9rem;">Usluga</th>
+            <th style="padding: 1rem; text-align: left; font-size: 0.9rem;">Cijena</th>
+            <th style="padding: 1rem; text-align: left; font-size: 0.9rem;">Status</th>
+        </tr>
+        {% for appt in appointments %}
+        <tr style="border-bottom: 1px solid #ddd;">
+            <td style="padding: 1rem; font-size: 0.9rem;">{{ appt['appointment_date'] }}</td>
+            <td style="padding: 1rem; font-size: 0.9rem;">{{ appt['appointment_time'] }}</td>
+            <td style="padding: 1rem; font-size: 0.9rem;">{{ appt['user_name'] }}</td>
+            <td style="padding: 1rem; font-size: 0.9rem;">{{ appt['worker_name'] }}</td>
+            <td style="padding: 1rem; font-size: 0.9rem;">{{ appt['service'] }}</td>
+            <td style="padding: 1rem; font-size: 0.9rem;">{{ appt['price'] }} {{ appt['currency'] }}</td>
+            <td style="padding: 1rem; font-size: 0.9rem;">
+                <span style="padding: 0.3rem 0.6rem; border-radius: 3px; {% if appt['status'] == 'zakazano' %}background-color: #90EE90; color: #333;{% elif appt['status'] == 'otkazano' %}background-color: #FFB6C6; color: #333;{% else %}background-color: #87CEEB; color: white;{% endif %} font-size: 0.85rem;">
+                    {{ appt['status'] }}
+                </span>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p style="text-align: center; color: #999;">Nema termina</p>
+    {% endif %}
+</div>
+{% endblock %}

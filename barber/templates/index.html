@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Početna - Barber Shop{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <h1>BARBER SHOP</h1>
+    <p>Premium salon za muške frizure i brijanje</p>
+    {% if not current_user %}
+        <a href="{{ url_for('auth.login') }}" class="btn btn-secondary">Počni Sada</a>
+    {% else %}
+        <a href="{{ url_for('user.home') }}" class="btn btn-secondary">Zakaži Termin</a>
+    {% endif %}
+</section>
+
+<section style="padding: 3rem 2rem; text-align: center;">
+    <h2 style="font-size: 2rem; margin-bottom: 2rem;">Naši Radnici</h2>
+    <div class="workers-grid">
+        <div class="worker-card">
+            <img src="{{ url_for('static', filename='slike/milan.jpg') }}" alt="Milan" class="worker-image">
+            <div class="worker-info">
+                <h3>Milan</h3>
+                <p>Šišanje & Brijanje</p>
+                <small>📞 065111222</small>
+            </div>
+        </div>
+        <div class="worker-card">
+            <img src="{{ url_for('static', filename='slike/aleksa.jpg') }}" alt="Aleksa" class="worker-image">
+            <div class="worker-info">
+                <h3>Aleksa</h3>
+                <p>Muški & Ženski</p>
+                <small>📞 065333444</small>
+            </div>
+        </div>
+        <div class="worker-card">
+            <img src="{{ url_for('static', filename='slike/nemanja.jpg') }}" alt="Nemanja" class="worker-image">
+            <div class="worker-info">
+                <h3>Nemanja</h3>
+                <p>Boja & Frizure</p>
+                <small>📞 065555666</small>
+            </div>
+        </div>
+        <div class="worker-card">
+            <img src="{{ url_for('static', filename='slike/milos.jpg') }}" alt="Miloš" class="worker-image">
+            <div class="worker-info">
+                <h3>Miloš</h3>
+                <p>Šišanje</p>
+                <small>📞 065777888</small>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section style="background-color: #f5f5f5; padding: 3rem 2rem; text-align: center;">
+    <h2 style="font-size: 2rem; margin-bottom: 2rem;">Zašto Barber Shop?</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; max-width: 1200px; margin: 0 auto;">
+        <div class="card">
+            <h3>✨ Premium Kvalitet</h3>
+            <p>Samo najbolji profesionalci i materijali.</p>
+        </div>
+        <div class="card">
+            <h3>⏰ Brzo Zakazivanje</h3>
+            <p>Jednostavno i brzo zakazivanje online.</p>
+        </div>
+        <div class="card">
+            <h3>💳 Fleksibilna Plaćanja</h3>
+            <p>EUR ili RSD - vi birate.</p>
+        </div>
+        <div class="card">
+            <h3>🤖 AI Podrška</h3>
+            <p>24/7 chatbot za sva vaša pitanja.</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

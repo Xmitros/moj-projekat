@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Barber Shop{% endblock %}
+
+{% block content %}
+<div style="max-width: 400px; margin: 3rem auto; padding: 2rem;">
+    {% if error %}
+        <div style="background-color: #ffcccc; color: #cc0000; padding: 1rem; border-radius: 5px; margin-bottom: 1rem;">
+            {{ error }}
+        </div>
+    {% endif %}
+
+    <form method="POST" style="background-color: white; border: 1px solid #ddd; border-radius: 8px; padding: 2rem;">
+        <h2 style="text-align: center; margin-bottom: 2rem; font-family: Calibri;">Prijava</h2>
+        
+        <div class="form-group">
+            <label for="username">Korisničko Ime</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Lozinka</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Prijavi Se</button>
+    </form>
+
+    <p style="text-align: center; margin-top: 1rem;">
+        Nemaš nalog? <a href="{{ url_for('auth.register') }}" style="color: #1a1a1a; font-weight: bold;">Registruj se</a>
+    </p>
+</div>
+{% endblock %}

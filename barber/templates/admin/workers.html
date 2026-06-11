@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Radnici - Admin - Barber Shop{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 2rem auto; padding: 0 2rem;">
+    <h1 style="font-family: Calibri; margin-bottom: 2rem;">Upravljanje Radnicima</h1>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+        {% for worker in workers %}
+        <div class="card">
+            <img src="{{ url_for('static', filename='slike/' + worker['name'].lower() + '.jpg') }}" alt="{{ worker['name'] }}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 5px; margin-bottom: 1rem;">
+            <h3>{{ worker['name'] }}</h3>
+            <p><strong>Specijalizacija:</strong> {{ worker['specialty'] }}</p>
+            <p><strong>Telefon:</strong> {{ worker['phone'] }}</p>
+            <p><strong>Email:</strong> {{ worker['email'] or 'N/A' }}</p>
+            <p style="margin-top: 1rem;">
+                <strong>Status:</strong> 
+                <span style="color: {% if worker['active'] %}green{% else %}red{% endif %}; font-weight: bold;">
+                    {% if worker['active'] %}Aktivan{% else %}Neaktivan{% endif %}
+                </span>
+            </p>
+            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                <a href="{{ url_for('admin.worker_leaves', worker_id=worker['id']) }}" class="btn btn-primary" style="flex: 1; text-align: center; padding: 0.5rem;">Odmori</a>
+                <button class="btn btn-primary" style="flex: 1; padding: 0.5rem;" onclick="alert('Uređivanje - Coming soon')">Uredi</button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

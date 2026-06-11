@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Zakazivanje - Barber Shop{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 2rem auto; padding: 0 2rem;">
+    <h1 style="font-family: Calibri; margin-bottom: 2rem;">Zakaži Termin - {{ worker['name'] }}</h1>
+    
+    <form style="background-color: white; border: 1px solid #ddd; border-radius: 8px; padding: 2rem;">
+        <div class="form-group">
+            <label>Barber</label>
+            <input type="text" value="{{ worker['name'] }} - {{ worker['specialty'] }}" disabled>
+        </div>
+        
+        <div class="form-group">
+            <label for="date">Datum</label>
+            <input type="date" id="date" name="date" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="time">Vrijeme</label>
+            <input type="time" id="time" name="time" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="service">Usluga</label>
+            <select id="service" name="service">
+                <option>Šišanje</option>
+                <option>Brijanje</option>
+                <option>Šišanje + Brijanje</option>
+                <option>Boja</option>
+                <option>Frizura</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="price">Cijena</label>
+            <input type="number" id="price" name="price" step="0.01" value="15">
+        </div>
+        
+        <div class="form-group">
+            <label for="currency">Valuta</label>
+            <select id="currency" name="currency">
+                <option value="EUR">EUR</option>
+                <option value="RSD">RSD</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="notes">Napomena (opciono)</label>
+            <textarea id="notes" name="notes" style="resize: vertical; height: 80px;"></textarea>
+        </div>
+        
+        <button type="button" onclick="bookAppointment({{ worker['id'] }})" class="btn btn-primary" style="width: 100%;">Potvrdi Termin</button>
+    </form>
+</div>
+
+<script>
+function bookAppointment(workerId) {
+    const date = document.getElementById('date').value;
+    const time = document.getElementById('time').value;
+    const service = document.getElementById('service').value;
+    const price = document.getElementById('price').value;
+    const currency = document.getElementById('currency').value;
+    const notes = document.getElementById('notes').value;
+    
+    if (!date || !time) {
+        alert('Molim unesite datum i vrijeme!');
+        return;
+    }
+    
+    fetch('/api/book-appointment', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({worker_id: workerId, date, time, service, price, currency, notes})
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert('Termin zakazan!');
+            window.location.href = '/user/appointments';
+        } else {
+            alert('Greška: ' + data.message);
+        }
+    });
+}
+</script>
+{% endblock %}

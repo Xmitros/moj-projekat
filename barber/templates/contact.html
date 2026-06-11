@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Kontakt - Barber Shop{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 3rem auto; padding: 0 2rem;">
+    <h1 style="text-align: center; font-family: Calibri; margin-bottom: 2rem;">Kontaktiraj Nas</h1>
+    
+    <div style="background-color: white; border: 1px solid #ddd; border-radius: 8px; padding: 2rem;">
+        <form method="POST" action="#">
+            <div class="form-group">
+                <label for="name">Ime</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="subject">Tema</label>
+                <input type="text" id="subject" name="subject" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="message">Poruka</label>
+                <textarea id="message" name="message" style="resize: vertical; height: 150px;" required></textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Pošalji Poruku</button>
+        </form>
+    </div>
+    
+    <div style="text-align: center; margin-top: 3rem;">
+        <h3>Direktni Kontakt</h3>
+        <p>📞 +381 65 111 2222</p>
+        <p>📧 info@barbershop.rs</p>
+        <p>📍 Beograd, Srbija</p>
+    </div>
+</div>
+{% endblock %}

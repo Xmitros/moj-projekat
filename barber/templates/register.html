@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Registracija - Barber Shop{% endblock %}
+
+{% block content %}
+<div style="max-width: 400px; margin: 3rem auto; padding: 2rem;">
+    {% if error %}
+        <div style="background-color: #ffcccc; color: #cc0000; padding: 1rem; border-radius: 5px; margin-bottom: 1rem;">
+            {{ error }}
+        </div>
+    {% endif %}
+
+    <form method="POST" style="background-color: white; border: 1px solid #ddd; border-radius: 8px; padding: 2rem;">
+        <h2 style="text-align: center; margin-bottom: 2rem; font-family: Calibri;">Registracija</h2>
+        
+        <div class="form-group">
+            <label for="full_name">Puno Ime</label>
+            <input type="text" id="full_name" name="full_name" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="username">Korisničko Ime</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Lozinka</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="phone">Telefon</label>
+            <input type="text" id="phone" name="phone">
+        </div>
+        
+        <div class="form-group">
+            <label for="currency">Valuta</label>
+            <select id="currency" name="currency">
+                <option value="EUR">EUR (Eura)</option>
+                <option value="RSD">RSD (Srpski Dinar)</option>
+            </select>
+        </div>
+        
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Registruj Se</button>
+    </form>
+
+    <p style="text-align: center; margin-top: 1rem;">
+        Već imaš nalog? <a href="{{ url_for('auth.login') }}" style="color: #1a1a1a; font-weight: bold;">Prijavi se</a>
+    </p>
+</div>
+{% endblock %}
