@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Help Zahtjevi - Admin - Barber Shop{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 2rem auto; padding: 0 2rem;">
+    <h1 style="font-family: Calibri; margin-bottom: 2rem;">Help Zahtjevi Korisnika</h1>
+    
+    {% if help_requests %}
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        {% for req in help_requests %}
+        <div class="card" style="border-left: 4px solid {% if req['is_read'] %}#90EE90{% else %}#ff4444{% endif %};">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                <div>
+                    <h3>{{ req['full_name'] or 'Anoniman' }}</h3>
+                    <small style="color: #999;">{{ req['created_at'] }}</small>
+                </div>
+                {% if not req['is_read'] %}
+                <span class="notification-badge">!</span>
+                {% endif %}
+            </div>
+            <p style="background-color: #f5f5f5; padding: 1rem; border-radius: 5px; margin-bottom: 1rem;">{{ req['message'] }}</p>
+            <div style="display: flex; gap: 0.5rem;">
+                <button onclick="markAsRead({{ req['id'] }})" class="btn btn-primary" style="padding: 0.5rem 1rem;">Odgovori</button>
+                <button onclick="alert('Kontaktiraj korisnika')" class="btn btn-primary" style="padding: 0.5rem 1rem;">Kontaktiraj</button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p style="text-align: center; color: #999; padding: 2rem; font-size: 1.1rem;">Nema help zahtjeva</p>
+    {% endif %}
+</div>
+
+<script>
+function markAsRead(notifId) {
+    fetch(`/admin/api/notification/${notifId}/read`, {method: 'POST'})
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert('Zahtjev označen kao odgovoren!');
+            location.reload();
+        }
+    });
+}
+</script>
+{% endblock %}

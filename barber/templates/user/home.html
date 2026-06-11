@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Početna - Barber Shop{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 2rem auto; padding: 0 2rem;">
+    <h1 style="font-family: Calibri; margin-bottom: 2rem;">Odaberi Barber-a</h1>
+    
+    <div class="workers-grid">
+        {% for worker in workers %}
+        <div class="worker-card">
+            <img src="{{ url_for('static', filename='slike/' + worker['name'].lower() + '.jpg') }}" alt="{{ worker['name'] }}" class="worker-image">
+            <div class="worker-info">
+                <h3>{{ worker['name'] }}</h3>
+                <p>{{ worker['specialty'] }}</p>
+                <small>📞 {{ worker['phone'] }}</small>
+                <button onclick="location.href='{{ url_for('user.schedule', worker_id=worker['id']) }}'" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Zakaži Termin</button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
