@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% block title %}BROS — Radnici{% endblock %}
+
+{% block nav_links %}
+  <a href="/admin/">📊 Dashboard</a>
+  <a href="/admin/workers" class="active">👥 Radnici</a>
+  <a href="/admin/appointments">📋 Svi termini</a>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .worker-section { margin-bottom: 2rem; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .worker-section-header { background: var(--dark2); padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .worker-section-header h3 { font-size: 1.05rem; display: flex; align-items: center; gap: 0.7rem; }
+  .worker-avatar-sm { width: 36px; height: 36px; background: linear-gradient(135deg,var(--gold),var(--dark3)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; flex-shrink: 0; }
+  .worker-section-body { padding: 1.2rem 1.5rem; }
+  .subtabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 1rem; }
+  .subtab { padding: 0.5rem 1rem; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.85rem; font-weight: 600; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.2s; }
+  .subtab.active { color: var(--gold); border-bottom-color: var(--gold); }
+  .subtab-panel { display: none; }
+  .subtab-panel.active { display: block; }
+  .mini-form { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: flex-end; margin-bottom: 1rem; }
+  .mini-form .form-group { margin: 0; flex: 1; min-width: 120px; }
+  .leave-chip { display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(231,76,60,0.1); border: 1px solid rgba(231,76,60,0.3); color: var(--danger); padding: 0.2rem 0.6rem 0.2rem 0.8rem; border-radius: 100px; font-size: 0.8rem; margin: 0.2rem; }
+  .leave-chip button { background: none; border: none; cursor: pointer; color: var(--danger); font-size: 0.9rem; padding: 0; }
+  .note-item { background: var(--dark2); border-radius: 6px; padding: 0.6rem 0.8rem; margin-bottom: 0.4rem; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+  .note-item .note-text { flex: 1; }
+  .note-item .note-date { font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; }
+  .add-worker-card { background: var(--surface); border: 2px dashed var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+  .add-worker-card h3 { color: var(--gold); margin-bottom: 1rem; font-size: 1rem; }
+  .form-inline { display: flex; gap: 0.8rem; flex-wrap: wrap; align-items: flex-end; }
+  .form-inline .form-group { margin: 0; flex: 1; min-width: 150px; }
+  .inactive-workers { margin-top: 1.5rem; }
+  .inactive-title { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.7rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>👥 Upravljanje radnicima</h1>
+  <p>Dodavanje, uklanjanje, odmori i napomene</p>
+</div>
+
+<!-- DODAJ RADNIKA -->
+<div class="add-worker-card">
+  <h3>➕ Dodaj novog radnika</h3>
+  <form method="POST" action="/admin/workers/add">
+    <div class="form-inline">
+      <div class="form-group">
+        <label>Ime *</label>
+        <input type="text" name="name" class="form-control" placeholder="Npr. Nikola" required>
+      </div>
+      <div class="form-group">
+        <label>Specijalizacija</label>
+        <input type="text" name="specialty" class="form-control" placeholder="Frizer" value="Frizer">
+      </div>
+      <div class="form-group">
+        <label>Telefon</label>
+        <input type="text" name="phone" class="form-control" placeholder="065xxxxxx">
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" name="email" class="form-control" placeholder="email@gmail.com">
+      </div>
+      <button type="submit" class="btn btn-gold" style="flex-shrink:0">Dodaj radnika</button>
+    </div>
+  </form>
+</div>
+
+<!-- AKTIVNI RADNICI -->
+{% for wd in worker_data %}
+{% set w = wd.worker %}
+{% if w.active %}
+<div class="worker-section">
+  <div class="worker-section-header">
+    <h3>
+      <div class="worker-avatar-sm">{{ w.name[0] }}</div>
+      {{ w.name }}
+      <span class="badge badge-gold" style="font-size:0.75rem">{{ w.specialty }}</span>
+      {% if w.phone %}<span style="color:var(--text-muted);font-size:0.8rem;font-weight:400">{{ w.phone }}</span>{% endif %}
+    </h3>
+    <form method="POST" action="/admin/workers/deactivate/{{ w.id }}" onsubmit="return confirm('Ukloniti radnika {{ w.name }}?')">
+      <button type="submit" class="btn btn-danger btn-sm">Ukloni radnika</button>
+    </form>
+  </div>
+  <div class="worker-section-body">
+    <div class="subtabs">
+      <button class="subtab active" onclick="switchSubtab('leaves-{{ w.id }}', this, {{ w.id }})">🏖️ Odmori</button>
+      <button class="subtab" onclick="switchSubtab('notes-{{ w.id }}', this, {{ w.id }})">📝 Napomene</button>
+    </div>
+
+    <!-- ODMORI -->
+    <div class="subtab-panel active" id="leaves-{{ w.id }}">
+      <form method="POST" action="/admin/workers/add_leave" class="mini-form">
+        <input type="hidden" name="worker_id" value="{{ w.id }}">
+        <div class="form-group">
+          <label>Datum odmora</label>
+          <input type="date" name="leave_date" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label>Razlog</label>
+          <input type="text" name="reason" class="form-control" placeholder="Odmor / Bolovanje / Slobodan dan" value="Odmor">
+        </div>
+        <button type="submit" class="btn btn-gold btn-sm" style="flex-shrink:0">Dodaj</button>
+      </form>
+      <div>
+        {% if wd.leaves %}
+          {% for l in wd.leaves %}
+          <span class="leave-chip">
+            📅 {{ l.leave_date }} — {{ l.reason }}
+            <form method="POST" action="/admin/workers/delete_leave/{{ l.id }}" style="display:inline">
+              <button type="submit" title="Obriši">×</button>
+            </form>
+          </span>
+          {% endfor %}
+        {% else %}
+          <p style="color:var(--text-muted);font-size:0.85rem">Nema unesenih odmora.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- NAPOMENE -->
+    <div class="subtab-panel" id="notes-{{ w.id }}">
+      <form method="POST" action="/admin/workers/add_note" class="mini-form">
+        <input type="hidden" name="worker_id" value="{{ w.id }}">
+        <div class="form-group" style="flex:2">
+          <label>Nova napomena</label>
+          <input type="text" name="note" class="form-control" placeholder="Unesite napomenu za radnika..." required>
+        </div>
+        <button type="submit" class="btn btn-gold btn-sm" style="flex-shrink:0">Dodaj</button>
+      </form>
+      <div>
+        {% if wd.notes %}
+          {% for n in wd.notes %}
+          <div class="note-item">
+            <span class="note-text">{{ n.note }}</span>
+            <span class="note-date">{{ n.created_at[:10] }}</span>
+            <form method="POST" action="/admin/workers/delete_note/{{ n.id }}" style="display:inline">
+              <button type="submit" class="btn btn-danger btn-sm" style="padding:0.2rem 0.5rem">×</button>
+            </form>
+          </div>
+          {% endfor %}
+        {% else %}
+          <p style="color:var(--text-muted);font-size:0.85rem">Nema napomena.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endfor %}
+
+<!-- NEAKTIVNI RADNICI -->
+{% set inactive = worker_data | selectattr('worker.active', 'equalto', 0) | list %}
+{% if inactive %}
+<div class="inactive-workers">
+  <div class="inactive-title">Neaktivni radnici</div>
+  {% for wd in inactive %}
+  {% set w = wd.worker %}
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0.8rem 1.2rem;display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;opacity:0.6">
+    <div style="display:flex;align-items:center;gap:0.7rem">
+      <div class="worker-avatar-sm" style="opacity:0.5">{{ w.name[0] }}</div>
+      <span>{{ w.name }}</span>
+      <span class="badge badge-danger">Neaktivan</span>
+    </div>
+    <form method="POST" action="/admin/workers/activate/{{ w.id }}">
+      <button type="submit" class="btn btn-success btn-sm">Aktiviraj</button>
+    </form>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+function switchSubtab(panelId, btn, workerId) {
+  const parent = btn.closest('.worker-section-body');
+  parent.querySelectorAll('.subtab').forEach(t => t.classList.remove('active'));
+  parent.querySelectorAll('.subtab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(panelId).classList.add('active');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="bs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}BROS Salon{% endblock %}</title>
+  <style>
+    :root {
+      --gold: #C9A84C;
+      --gold-light: #E8C878;
+      --dark: #1A1A2E;
+      --dark2: #16213E;
+      --dark3: #0F3460;
+      --text: #E0E0E0;
+      --text-muted: #9E9E9E;
+      --surface: #1E1E3A;
+      --surface2: #252545;
+      --border: #333360;
+      --danger: #E74C3C;
+      --success: #2ECC71;
+      --warning: #F39C12;
+      --info: #3498DB;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--dark);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* NAV */
+    nav {
+      background: var(--dark2);
+      border-bottom: 2px solid var(--gold);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 20px rgba(201,168,76,0.15);
+    }
+    .nav-brand {
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: var(--gold);
+      letter-spacing: 3px;
+      text-decoration: none;
+    }
+    .nav-brand span { color: var(--text); }
+    .nav-links { display: flex; gap: 0.5rem; align-items: center; }
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 0.4rem 1rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+    .nav-links a:hover, .nav-links a.active {
+      color: var(--gold);
+      background: rgba(201,168,76,0.1);
+    }
+    .nav-user {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      display: flex; align-items: center; gap: 0.8rem;
+    }
+    .nav-user strong { color: var(--gold); }
+    .btn-logout {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 0.3rem 0.8rem;
+      border-radius: 6px;
+      cursor: pointer;
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+    .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+
+    /* MAIN */
+    main { padding: 2rem; max-width: 1400px; margin: 0 auto; }
+
+    /* FLASH */
+    .flash {
+      padding: 0.8rem 1.2rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.9rem;
+    }
+    .flash-error { background: rgba(231,76,60,0.15); border: 1px solid var(--danger); color: #FF7070; }
+    .flash-success { background: rgba(46,204,113,0.15); border: 1px solid var(--success); color: #70FF9E; }
+    .flash-warning { background: rgba(243,156,18,0.15); border: 1px solid var(--warning); color: #FFD070; }
+
+    /* BUTTONS */
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.5rem 1.2rem; border-radius: 8px;
+      border: none; cursor: pointer; font-size: 0.9rem;
+      font-weight: 600; text-decoration: none; transition: all 0.2s;
+    }
+    .btn-gold { background: var(--gold); color: var(--dark); }
+    .btn-gold:hover { background: var(--gold-light); transform: translateY(-1px); }
+    .btn-outline {
+      background: transparent; border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+    .btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+    .btn-danger { background: rgba(231,76,60,0.2); color: var(--danger); border: 1px solid var(--danger); }
+    .btn-danger:hover { background: var(--danger); color: white; }
+    .btn-success { background: rgba(46,204,113,0.2); color: var(--success); border: 1px solid var(--success); }
+    .btn-success:hover { background: var(--success); color: white; }
+    .btn-sm { padding: 0.3rem 0.7rem; font-size: 0.8rem; }
+
+    /* CARDS */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+    .card-title {
+      font-size: 1rem; font-weight: 700;
+      color: var(--gold); margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* FORM */
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; }
+    .form-control {
+      width: 100%; padding: 0.6rem 0.9rem;
+      background: var(--dark2); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); font-size: 0.9rem;
+      transition: border-color 0.2s;
+    }
+    .form-control:focus { outline: none; border-color: var(--gold); }
+    select.form-control option { background: var(--dark2); }
+
+    /* TABLE */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: var(--dark2); color: var(--gold); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; padding: 0.8rem 1rem; text-align: left; }
+    td { padding: 0.8rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* BADGE */
+    .badge {
+      display: inline-block; padding: 0.2rem 0.6rem;
+      border-radius: 100px; font-size: 0.75rem; font-weight: 600;
+    }
+    .badge-success { background: rgba(46,204,113,0.15); color: var(--success); }
+    .badge-danger { background: rgba(231,76,60,0.15); color: var(--danger); }
+    .badge-warning { background: rgba(243,156,18,0.15); color: var(--warning); }
+    .badge-info { background: rgba(52,152,219,0.15); color: var(--info); }
+    .badge-gold { background: rgba(201,168,76,0.15); color: var(--gold); }
+
+    /* GRID */
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+    @media (max-width: 768px) {
+      .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+      nav { padding: 0 1rem; }
+      main { padding: 1rem; }
+    }
+
+    /* TABS */
+    .tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 1.5rem; }
+    .tab-btn {
+      padding: 0.7rem 1.4rem; background: transparent; border: none;
+      color: var(--text-muted); cursor: pointer; font-size: 0.9rem;
+      font-weight: 600; border-bottom: 2px solid transparent;
+      margin-bottom: -2px; transition: all 0.2s;
+    }
+    .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+    .tab-btn:hover { color: var(--text); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* PAGE TITLE */
+    .page-header { margin-bottom: 2rem; }
+    .page-header h1 { font-size: 1.6rem; font-weight: 800; }
+    .page-header p { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.3rem; }
+
+    /* STAT CARDS */
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.2rem 1.5rem;
+    }
+    .stat-card .stat-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-card .stat-value { font-size: 2rem; font-weight: 800; color: var(--gold); margin: 0.3rem 0; }
+    .stat-card .stat-desc { font-size: 0.8rem; color: var(--text-muted); }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  {% if session.user_id %}
+  <nav>
+    <a href="/" class="nav-brand">✂ BROS <span>Salon</span></a>
+    <div class="nav-links">
+      {% block nav_links %}{% endblock %}
+    </div>
+    <div class="nav-user">
+      <strong>{{ session.full_name }}</strong>
+      <span class="badge badge-{{ 'danger' if session.role == 'admin' else 'gold' }}">
+        {{ 'Admin' if session.role == 'admin' else 'Korisnik' }}
+      </span>
+      <a href="/logout" class="btn-logout">Odjava</a>
+    </div>
+  </nav>
+  {% endif %}
+
+  <main>
+    {% with messages = get_flashed_messages(with_categories=True) %}
+      {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

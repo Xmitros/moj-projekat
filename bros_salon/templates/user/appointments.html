@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}BROS — Moji termini{% endblock %}
+
+{% block nav_links %}
+  <a href="/user/">🏠 Početna</a>
+  <a href="/user/appointments" class="active">📅 Moji termini</a>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .appt-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1rem;
+  }
+  .appt-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden; transition: border-color 0.2s;
+  }
+  .appt-card:hover { border-color: rgba(201,168,76,0.4); }
+  .appt-header {
+    background: var(--dark2); padding: 0.9rem 1.2rem;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .appt-date { font-weight: 700; font-size: 0.95rem; }
+  .appt-time { font-size: 0.8rem; color: var(--gold); margin-top: 0.1rem; }
+  .appt-body { padding: 1rem 1.2rem; }
+  .appt-row {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 0.5rem; font-size: 0.85rem;
+  }
+  .appt-row .label { color: var(--text-muted); }
+  .appt-row .value { font-weight: 600; }
+  .appt-footer {
+    padding: 0.8rem 1.2rem; border-top: 1px solid var(--border);
+    display: flex; gap: 0.5rem; flex-wrap: wrap;
+  }
+  .empty-state { text-align: center; padding: 4rem 2rem; color: var(--text-muted); }
+  .price-tag { color: var(--gold); font-size: 1rem; font-weight: 700; }
+  .filter-bar { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .filter-btn {
+    padding: 0.4rem 1rem; border-radius: 100px; border: 1px solid var(--border);
+    background: transparent; color: var(--text-muted); cursor: pointer;
+    font-size: 0.85rem; transition: all 0.2s;
+  }
+  .filter-btn.active { background: var(--gold); color: var(--dark); border-color: var(--gold); }
+  .stats-row {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;
+    margin-bottom: 2rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>📅 Moji termini</h1>
+  <p>Pregled svih zakazanih i prošlih termina</p>
+</div>
+
+{% set upcoming = appointments | selectattr('status', 'equalto', 'zakazano') | list %}
+{% set cancelled = appointments | selectattr('status', 'equalto', 'otkazano') | list %}
+{% set total_spent = upcoming | sum(attribute='price') %}
+
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-label">Predstojeći</div>
+    <div class="stat-value">{{ upcoming | length }}</div>
+    <div class="stat-desc">zakazanih termina</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Ukupno termina</div>
+    <div class="stat-value">{{ appointments | length }}</div>
+    <div class="stat-desc">od registracije</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Ukupno potrošeno</div>
+    <div class="stat-value" style="font-size:1.5rem">{{ "%.2f" | format(total_spent) }} KM</div>
+    <div class="stat-desc">aktivnih termina</div>
+  </div>
+</div>
+
+<div class="filter-bar">
+  <button class="filter-btn active" onclick="filterAppts('all', this)">Svi ({{ appointments | length }})</button>
+  <button class="filter-btn" onclick="filterAppts('zakazano', this)">Predstojeći ({{ upcoming | length }})</button>
+  <button class="filter-btn" onclick="filterAppts('otkazano', this)">Otkazani ({{ cancelled | length }})</button>
+</div>
+
+{% if appointments %}
+<div class="appt-grid" id="appt-grid">
+  {% for appt in appointments %}
+  <div class="appt-card" data-status="{{ appt.status }}">
+    <div class="appt-header">
+      <div>
+        <div class="appt-date">{{ appt.appointment_date }}</div>
+        <div class="appt-time">🕐 {{ appt.appointment_time }}</div>
+      </div>
+      <span class="badge badge-{% if appt.status == 'zakazano' %}success{% else %}danger{% endif %}">
+        {{ appt.status }}
+      </span>
+    </div>
+    <div class="appt-body">
+      <div class="appt-row">
+        <span class="label">Frizer</span>
+        <span class="value">{{ appt.worker_name }}</span>
+      </div>
+      <div class="appt-row">
+        <span class="label">Usluga</span>
+        <span class="value">{{ appt.service }}</span>
+      </div>
+      <div class="appt-row">
+        <span class="label">Cijena</span>
+        <span class="price-tag">{{ "%.2f" | format(appt.price) }} KM</span>
+      </div>
+    </div>
+    <div class="appt-footer">
+      <a href="/user/receipt/{{ appt.id }}" class="btn btn-outline btn-sm">🖨️ Fiskalni račun</a>
+      {% if appt.status == 'zakazano' %}
+      <form method="POST" action="/user/cancel/{{ appt.id }}" style="display:inline"
+            onsubmit="return confirm('Sigurno želite otkazati termin?')">
+        <button type="submit" class="btn btn-danger btn-sm">✕ Otkaži</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+  <div style="font-size:3rem;margin-bottom:1rem">📅</div>
+  <p style="font-size:1.1rem;margin-bottom:0.5rem">Nemate zakazanih termina</p>
+  <p style="font-size:0.9rem;margin-bottom:1.5rem">Odaberite frizera i zakažite vaš prvi termin!</p>
+  <a href="/user/" class="btn btn-gold">Zakaži termin →</a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+function filterAppts(status, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.appt-card').forEach(card => {
+    if (status === 'all' || card.dataset.status === status) {
+      card.style.display = '';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+</script>
+{% endblock %}

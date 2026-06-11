@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}BROS — Admin Dashboard{% endblock %}
+
+{% block nav_links %}
+  <a href="/admin/" class="active">📊 Dashboard</a>
+  <a href="/admin/workers">👥 Radnici</a>
+  <a href="/admin/appointments">📋 Svi termini</a>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; margin-bottom: 2rem; }
+  .kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; border-left: 4px solid var(--gold); }
+  .kpi-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .kpi-value { font-size: 2.2rem; font-weight: 800; color: var(--gold); margin: 0.3rem 0; }
+  .kpi-desc { font-size: 0.8rem; color: var(--text-muted); }
+  .worker-table { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .worker-table-header { padding: 1rem 1.5rem; background: var(--dark2); display: flex; justify-content: space-between; align-items: center; }
+  .worker-table-header h2 { font-size: 1rem; color: var(--gold); }
+  .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-top: 4px; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--gold), #E8C878); border-radius: 3px; }
+  .report-btn { background: rgba(201,168,76,0.1); border: 1px solid var(--gold); color: var(--gold); padding: 0.5rem 1.2rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; transition: all 0.2s; }
+  .report-btn:hover { background: var(--gold); color: var(--dark); }
+  .month-select { display: inline-flex; align-items: center; gap: 0.5rem; }
+  .month-select input { background: var(--dark2); border: 1px solid var(--border); color: var(--text); padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.85rem; }
+  @media(max-width:700px){.kpi-row{grid-template-columns:1fr}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>📊 Admin Dashboard</h1>
+  <p>Dobrodošli, <strong>{{ session.full_name }}</strong> — Pregled salona Bros</p>
+</div>
+
+<div class="kpi-row">
+  <div class="kpi-card">
+    <div class="kpi-label">Termini danas</div>
+    <div class="kpi-value">{{ today_count }}</div>
+    <div class="kpi-desc">zakazane posjete</div>
+  </div>
+  <div class="kpi-card" style="border-left-color: var(--success)">
+    <div class="kpi-label">Prihod ovog mjeseca</div>
+    <div class="kpi-value" style="font-size:1.6rem;color:var(--success)">{{ "%.2f"|format(month_revenue) }} KM</div>
+    <div class="kpi-desc">svi zakazani termini</div>
+  </div>
+  <div class="kpi-card" style="border-left-color: var(--info)">
+    <div class="kpi-label">Aktivnih radnika</div>
+    <div class="kpi-value" style="color:var(--info)">{{ stats|length }}</div>
+    <div class="kpi-desc">frizera u salonu</div>
+  </div>
+</div>
+
+<div style="margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+  <div class="month-select">
+    <label style="font-size:0.85rem;color:var(--text-muted)">PDF Profit izvještaj za:</label>
+    <input type="month" id="report-month">
+  </div>
+  <a href="#" class="report-btn" id="report-link">📥 Preuzmi PDF</a>
+</div>
+
+<div class="worker-table">
+  <div class="worker-table-header">
+    <h2>Predstojeći termini po radniku</h2>
+    <a href="/admin/workers" class="btn btn-outline btn-sm">Upravljaj radnicima →</a>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Radnik</th><th>Specijalizacija</th><th>Predstojeći termini</th><th>Prihod</th><th>Popunjenost</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if stats %}
+          {% set max_appts = namespace(v=1) %}
+          {% for s in stats %}{% if (s.upcoming or 0) > max_appts.v %}{% set max_appts.v = s.upcoming %}{% endif %}{% endfor %}
+          {% for s in stats %}
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:0.7rem">
+                <div style="width:36px;height:36px;background:linear-gradient(135deg,var(--gold),var(--dark3));border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;flex-shrink:0">{{ s.name[0] }}</div>
+                <strong>{{ s.name }}</strong>
+              </div>
+            </td>
+            <td><span class="badge badge-gold">{{ s.specialty }}</span></td>
+            <td><span style="font-size:1.1rem;font-weight:700;color:var(--gold)">{{ s.upcoming or 0 }}</span> <span style="color:var(--text-muted);font-size:0.8rem">termina</span></td>
+            <td style="color:var(--success);font-weight:700">{{ "%.2f"|format(s.revenue or 0) }} KM</td>
+            <td style="min-width:120px">
+              {% set pct = ((s.upcoming or 0) / max_appts.v * 100)|int %}
+              <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:2px">{{ pct }}%</div>
+              <div class="progress-bar"><div class="progress-fill" style="width:{{ pct }}%"></div></div>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:2rem">Nema podataka</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const monthInput = document.getElementById('report-month');
+  const now = new Date();
+  monthInput.value = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  function upd(){ document.getElementById('report-link').href='/admin/profit_report?month='+monthInput.value; }
+  monthInput.addEventListener('change', upd);
+  upd();
+</script>
+{% endblock %}

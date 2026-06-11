@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}BROS — Odaberi frizera{% endblock %}
+
+{% block nav_links %}
+  <a href="/user/" class="active">🏠 Početna</a>
+  <a href="/user/appointments">📅 Moji termini</a>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .home-header {
+    text-align: center;
+    padding: 3rem 1rem 2rem;
+  }
+  .home-header .brand {
+    font-size: 4rem;
+    font-weight: 900;
+    color: var(--gold);
+    letter-spacing: 10px;
+    line-height: 1;
+  }
+  .home-header .tagline {
+    color: var(--text-muted);
+    font-size: 1rem;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .home-header .greeting {
+    color: var(--text);
+    font-size: 1.1rem;
+    margin-top: 1rem;
+  }
+  .home-header .greeting span { color: var(--gold); }
+  .divider {
+    width: 60px; height: 3px;
+    background: var(--gold);
+    margin: 1rem auto;
+    border-radius: 2px;
+  }
+
+  .section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+
+  .workers-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    justify-content: center;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .worker-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    text-decoration: none;
+    color: var(--text);
+    width: 180px;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .worker-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.3s;
+  }
+  .worker-card:hover {
+    border-color: var(--gold);
+    transform: translateY(-6px);
+    box-shadow: 0 12px 40px rgba(201,168,76,0.2);
+  }
+  .worker-card:hover::before { transform: translateX(0); }
+
+  .worker-avatar {
+    width: 70px; height: 70px;
+    background: linear-gradient(135deg, var(--gold), var(--dark3));
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem; margin: 0 auto 1rem;
+    border: 2px solid rgba(201,168,76,0.3);
+  }
+  .worker-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+  }
+  .worker-specialty {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+  .worker-arrow {
+    margin-top: 1rem;
+    font-size: 1.2rem;
+    color: var(--gold);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .worker-card:hover .worker-arrow { opacity: 1; }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-muted);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="home-header">
+  <div class="brand">✂ BROS</div>
+  <div class="tagline">Frizerski Salon</div>
+  <div class="divider"></div>
+  <div class="greeting">Dobrodošli, <span>{{ session.full_name }}</span>! Odaberite svog frizera.</div>
+</div>
+
+<p class="section-title">Naši majstori</p>
+
+{% if workers %}
+<div class="workers-row">
+  {% for worker in workers %}
+  <a href="/user/worker/{{ worker.id }}" class="worker-card">
+    <div class="worker-avatar">
+      {% set initials = worker.name[0] %}
+      {{ initials }}
+    </div>
+    <div class="worker-name">{{ worker.name }}</div>
+    <div class="worker-specialty">{{ worker.specialty }}</div>
+    <div class="worker-arrow">→</div>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+  <div style="font-size:3rem;margin-bottom:1rem">✂</div>
+  <p>Trenutno nema dostupnih frizera.</p>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,448 @@
+{% extends "base.html" %}
+{% block title %}BROS — Zakazivanje kod {{ worker.name }}{% endblock %}
+
+{% block nav_links %}
+  <a href="/user/">🏠 Početna</a>
+  <a href="/user/appointments">📅 Moji termini</a>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .booking-grid {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 2rem;
+    align-items: start;
+  }
+  @media (max-width: 900px) {
+    .booking-grid { grid-template-columns: 1fr; }
+  }
+
+  .worker-header {
+    display: flex; align-items: center; gap: 1.2rem;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.2rem 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .worker-avatar-lg {
+    width: 56px; height: 56px;
+    background: linear-gradient(135deg, var(--gold), var(--dark3));
+    border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; font-size: 1.5rem; font-weight: bold;
+    flex-shrink: 0;
+  }
+  .worker-info h2 { font-size: 1.2rem; margin-bottom: 0.2rem; }
+  .worker-info p { color: var(--text-muted); font-size: 0.85rem; }
+
+  /* CALENDAR */
+  .calendar-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem; }
+  .cal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 1rem;
+  }
+  .cal-header h3 { font-size: 1rem; color: var(--gold); }
+  .cal-nav {
+    background: transparent; border: 1px solid var(--border);
+    color: var(--text); padding: 0.3rem 0.7rem;
+    border-radius: 6px; cursor: pointer; font-size: 0.9rem;
+    transition: all 0.2s;
+  }
+  .cal-nav:hover { border-color: var(--gold); color: var(--gold); }
+  .cal-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+  .cal-day-name {
+    text-align: center; font-size: 0.7rem;
+    color: var(--text-muted); padding: 0.3rem;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .cal-day {
+    aspect-ratio: 1; display: flex; align-items: center;
+    justify-content: center; border-radius: 8px;
+    font-size: 0.85rem; font-weight: 600; cursor: pointer;
+    border: 1px solid transparent; transition: all 0.15s;
+    position: relative;
+  }
+  .cal-day:hover:not(.disabled):not(.past) {
+    border-color: var(--gold); color: var(--gold);
+  }
+  .cal-day.today {
+    border-color: var(--info); color: var(--info);
+  }
+  .cal-day.past, .cal-day.disabled {
+    color: var(--text-muted); cursor: not-allowed; opacity: 0.4;
+  }
+  .cal-day.leave {
+    background: rgba(231,76,60,0.15); color: var(--danger);
+    cursor: not-allowed;
+  }
+  .cal-day.fully-booked {
+    background: rgba(231,76,60,0.1); color: var(--danger);
+  }
+  .cal-day.partial {
+    background: rgba(243,156,18,0.1); color: var(--warning);
+  }
+  .cal-day.available {
+    background: rgba(46,204,113,0.05);
+  }
+  .cal-day.selected {
+    background: var(--gold) !important; color: var(--dark) !important;
+    border-color: var(--gold) !important;
+  }
+  .cal-day.empty { cursor: default; }
+
+  .cal-legend {
+    display: flex; flex-wrap: wrap; gap: 0.8rem;
+    margin-top: 0.8rem; padding-top: 0.8rem;
+    border-top: 1px solid var(--border);
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; color: var(--text-muted); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+
+  /* TIME SLOTS */
+  .booking-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; }
+  .booking-panel h3 { font-size: 1rem; color: var(--gold); margin-bottom: 1rem; }
+  .selected-date-label { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem; }
+  .selected-date-label strong { color: var(--text); }
+
+  .times-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;
+    max-height: 260px; overflow-y: auto;
+    margin-bottom: 1rem;
+  }
+  .time-slot {
+    padding: 0.5rem; text-align: center;
+    border-radius: 6px; border: 1px solid var(--border);
+    background: var(--dark2); cursor: pointer;
+    font-size: 0.85rem; font-weight: 600;
+    transition: all 0.15s; color: var(--text);
+  }
+  .time-slot:hover { border-color: var(--gold); color: var(--gold); }
+  .time-slot.selected { background: var(--gold); color: var(--dark); border-color: var(--gold); }
+  .time-slot.booked { background: rgba(231,76,60,0.1); color: var(--danger); border-color: rgba(231,76,60,0.3); cursor: not-allowed; }
+
+  .service-group { margin-bottom: 1rem; }
+  .service-group label { font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 0.4rem; }
+
+  .confirm-btn {
+    width: 100%; padding: 0.9rem;
+    background: var(--gold); color: var(--dark);
+    border: none; border-radius: 8px; font-size: 1rem;
+    font-weight: 700; cursor: pointer; transition: all 0.2s;
+    display: none;
+  }
+  .confirm-btn:hover { background: #E8C878; }
+  .confirm-btn.show { display: block; }
+
+  .leave-msg {
+    text-align: center; padding: 2rem;
+    color: var(--danger); display: none;
+  }
+  .leave-msg.show { display: block; }
+
+  .no-date-msg { text-align: center; color: var(--text-muted); padding: 2rem 1rem; font-size: 0.9rem; }
+
+  /* NOTIFICATION BANNER */
+  .notif-banner {
+    background: rgba(52,152,219,0.1); border: 1px solid var(--info);
+    border-radius: 10px; padding: 1rem 1.2rem;
+    display: flex; align-items: center; gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .notif-banner p { font-size: 0.85rem; color: var(--text); }
+  .notif-banner button {
+    margin-left: auto; flex-shrink: 0;
+    background: var(--info); border: none; color: white;
+    padding: 0.4rem 0.9rem; border-radius: 6px;
+    cursor: pointer; font-size: 0.8rem; white-space: nowrap;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="worker-header">
+  <div class="worker-avatar-lg">{{ worker.name[0] }}</div>
+  <div class="worker-info">
+    <h2>{{ worker.name }}</h2>
+    <p>{{ worker.specialty }} &nbsp;·&nbsp; <a href="/user/" style="color:var(--gold);text-decoration:none">← Nazad</a></p>
+  </div>
+</div>
+
+<div id="notif-banner" class="notif-banner" style="display:none">
+  🔔
+  <p>Želite li primati podsjetnik 30 minuta prije termina?</p>
+  <button onclick="requestNotifications()">Uključi podsjetnik</button>
+</div>
+
+<div class="booking-grid">
+  <!-- KALENDAR -->
+  <div class="calendar-wrap">
+    <div class="cal-header">
+      <button class="cal-nav" onclick="changeMonth(-1)">‹</button>
+      <h3 id="cal-title"></h3>
+      <button class="cal-nav" onclick="changeMonth(1)">›</button>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <div class="cal-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:rgba(46,204,113,0.4)"></div> Slobodan</div>
+      <div class="legend-item"><div class="legend-dot" style="background:rgba(243,156,18,0.4)"></div> Djelimično</div>
+      <div class="legend-item"><div class="legend-dot" style="background:rgba(231,76,60,0.4)"></div> Pun / Odmor</div>
+    </div>
+  </div>
+
+  <!-- PANEL ZA ZAKAZIVANJE -->
+  <div class="booking-panel">
+    <h3>📅 Zakazivanje</h3>
+
+    <div id="no-date-msg" class="no-date-msg">
+      ← Odaberite datum na kalendaru
+    </div>
+
+    <div id="leave-msg" class="leave-msg">
+      🚫 Radnik je na odmoru ovaj dan.
+    </div>
+
+    <div id="booking-form" style="display:none">
+      <div class="selected-date-label">
+        Datum: <strong id="selected-date-label">—</strong>
+      </div>
+
+      <div class="service-group">
+        <label>Usluga</label>
+        <select id="sel-service" class="form-control">
+          <option value="Šišanje" data-price="8">Šišanje — 8 KM</option>
+          <option value="Šišanje + Brijanje" data-price="12">Šišanje + Brijanje — 12 KM</option>
+          <option value="Brijanje" data-price="6">Brijanje — 6 KM</option>
+          <option value="Frizura" data-price="15">Frizura — 15 KM</option>
+          <option value="Boja" data-price="25">Boja — 25 KM</option>
+        </select>
+      </div>
+
+      <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.7rem">Odaberite slobodan termin:</p>
+      <div id="times-grid" class="times-grid"></div>
+
+      <div id="leave-day-msg" style="display:none;text-align:center;color:var(--danger);padding:1rem;font-size:0.85rem">
+        🚫 Radnik ne radi ovaj dan.
+      </div>
+
+      <form method="POST" action="/user/book" id="booking-form-tag">
+        <input type="hidden" name="worker_id" value="{{ worker.id }}">
+        <input type="hidden" name="date" id="inp-date">
+        <input type="hidden" name="time" id="inp-time">
+        <input type="hidden" name="service" id="inp-service">
+        <input type="hidden" name="price" id="inp-price">
+        <button type="submit" class="confirm-btn" id="confirm-btn">
+          Zakaži termin →
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+const WORKER_ID = {{ worker.id }};
+const TODAY = '{{ today }}';
+let curYear, curMonth;
+let selectedDate = null;
+let selectedTime = null;
+let calCache = {};
+
+const DAYS = ['Pon','Uto','Sri','Čet','Pet','Sub','Ned'];
+const MONTHS = ['Januar','Februar','Mart','April','Maj','Juni','Juli','August','Septembar','Oktobar','Novembar','Decembar'];
+
+function init() {
+  const now = new Date();
+  curYear = now.getFullYear();
+  curMonth = now.getMonth();
+  renderCalendar();
+
+  // Provjeri Notification API
+  if ('Notification' in window && Notification.permission === 'default') {
+    document.getElementById('notif-banner').style.display = 'flex';
+  }
+}
+
+async function fetchMonthData(year, month) {
+  const key = `${year}-${String(month+1).padStart(2,'0')}`;
+  if (calCache[key]) return calCache[key];
+  const resp = await fetch(`/api/booked_slots/${WORKER_ID}/${key}`);
+  const data = await resp.json();
+  calCache[key] = data;
+  return data;
+}
+
+async function renderCalendar() {
+  const grid = document.getElementById('cal-grid');
+  const title = document.getElementById('cal-title');
+  title.textContent = `${MONTHS[curMonth]} ${curYear}`;
+
+  grid.innerHTML = '';
+  DAYS.forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'cal-day-name';
+    el.textContent = d;
+    grid.appendChild(el);
+  });
+
+  const firstDay = new Date(curYear, curMonth, 1);
+  // Start from Monday (0=Mon, ..., 6=Sun)
+  let startOffset = firstDay.getDay() - 1;
+  if (startOffset < 0) startOffset = 6;
+
+  const daysInMonth = new Date(curYear, curMonth + 1, 0).getDate();
+  const monthStr = `${curYear}-${String(curMonth+1).padStart(2,'0')}`;
+  const data = await fetchMonthData(curYear, curMonth);
+
+  // Empty cells
+  for (let i = 0; i < startOffset; i++) {
+    const el = document.createElement('div');
+    el.className = 'cal-day empty';
+    grid.appendChild(el);
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const el = document.createElement('div');
+    const dateStr = `${curYear}-${String(curMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = dateStr === TODAY;
+    const isPast = dateStr < TODAY;
+    const info = data[dateStr];
+    const isLeave = info && info.leave;
+    const booked = info ? info.booked : [];
+
+    let cls = 'cal-day';
+    if (isPast) cls += ' past';
+    else if (isLeave) cls += ' leave';
+    else if (booked.length >= 21) cls += ' fully-booked'; // all slots taken
+    else if (booked.length > 0) cls += ' partial';
+    else cls += ' available';
+
+    if (isToday) cls += ' today';
+    if (selectedDate === dateStr) cls += ' selected';
+
+    el.className = cls;
+    el.textContent = d;
+    el.setAttribute('data-date', dateStr);
+
+    if (!isPast && !isLeave) {
+      el.addEventListener('click', () => selectDate(dateStr));
+    }
+    grid.appendChild(el);
+  }
+}
+
+async function selectDate(dateStr) {
+  selectedDate = dateStr;
+  selectedTime = null;
+  renderCalendar();
+
+  const grid = document.getElementById('times-grid');
+  const bookForm = document.getElementById('booking-form');
+  const leaveMsg = document.getElementById('leave-day-msg');
+  const confirmBtn = document.getElementById('confirm-btn');
+  const noDateMsg = document.getElementById('no-date-msg');
+  const leaveOverlay = document.getElementById('leave-msg');
+
+  noDateMsg.style.display = 'none';
+  leaveOverlay.classList.remove('show');
+  bookForm.style.display = 'block';
+
+  document.getElementById('selected-date-label').textContent = formatDate(dateStr);
+  document.getElementById('inp-date').value = dateStr;
+  confirmBtn.classList.remove('show');
+  grid.innerHTML = '<div style="color:var(--text-muted);font-size:0.8rem;text-align:center;padding:1rem;grid-column:span 3">Učitavam termine...</div>';
+
+  const resp = await fetch(`/api/available_times/${WORKER_ID}/${dateStr}`);
+  const data = await resp.json();
+
+  if (data.leave) {
+    bookForm.style.display = 'none';
+    leaveOverlay.classList.add('show');
+    return;
+  }
+
+  grid.innerHTML = '';
+  if (data.times.length === 0) {
+    grid.innerHTML = '<div style="color:var(--danger);font-size:0.85rem;text-align:center;padding:1rem;grid-column:span 3">Nema slobodnih termina ovaj dan.</div>';
+    return;
+  }
+
+  data.times.forEach(t => {
+    const el = document.createElement('div');
+    el.className = 'time-slot';
+    el.textContent = t;
+    el.addEventListener('click', () => selectTime(t, el));
+    grid.appendChild(el);
+  });
+}
+
+function selectTime(time, el) {
+  document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedTime = time;
+  document.getElementById('inp-time').value = time;
+
+  const sel = document.getElementById('sel-service');
+  const opt = sel.selectedOptions[0];
+  document.getElementById('inp-service').value = opt.value;
+  document.getElementById('inp-price').value = opt.dataset.price;
+
+  document.getElementById('confirm-btn').classList.add('show');
+}
+
+document.getElementById('sel-service').addEventListener('change', function() {
+  if (selectedTime) {
+    const opt = this.selectedOptions[0];
+    document.getElementById('inp-service').value = opt.value;
+    document.getElementById('inp-price').value = opt.dataset.price;
+  }
+});
+
+function changeMonth(dir) {
+  curMonth += dir;
+  if (curMonth < 0) { curMonth = 11; curYear--; }
+  if (curMonth > 11) { curMonth = 0; curYear++; }
+  renderCalendar();
+}
+
+function formatDate(str) {
+  const [y, m, d] = str.split('-');
+  const months = ['januar','februar','mart','april','maj','juni','juli','august','septembar','oktobar','novembar','decembar'];
+  return `${parseInt(d)}. ${months[parseInt(m)-1]} ${y}.`;
+}
+
+function requestNotifications() {
+  if (!('Notification' in window)) { alert('Vaš browser ne podržava notifikacije.'); return; }
+  Notification.requestPermission().then(perm => {
+    if (perm === 'granted') {
+      document.getElementById('notif-banner').style.display = 'none';
+      new Notification('BROS Salon', {
+        body: 'Notifikacije su uključene! Podsjećaćemo vas 30 min prije termina.',
+        icon: '/static/icon.png'
+      });
+    } else {
+      document.getElementById('notif-banner').style.display = 'none';
+    }
+  });
+}
+
+// Schedule reminder via SW if available
+function scheduleReminder(date, time, worker) {
+  if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+    const [h, m] = time.split(':').map(Number);
+    const apptMs = new Date(`${date}T${time}:00`).getTime();
+    const remMs = apptMs - 30 * 60 * 1000;
+    const now = Date.now();
+    if (remMs > now) {
+      setTimeout(() => {
+        new Notification('⏰ BROS — Podsjetnik!', {
+          body: `Za 30 minuta imate termin kod ${worker}.`
+        });
+      }, remMs - now);
+    }
+  }
+}
+
+init();
+</script>
+{% endblock %}

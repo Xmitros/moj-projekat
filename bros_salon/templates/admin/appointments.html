@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}BROS — Svi termini{% endblock %}
+
+{% block nav_links %}
+  <a href="/admin/">📊 Dashboard</a>
+  <a href="/admin/workers">👥 Radnici</a>
+  <a href="/admin/appointments" class="active">📋 Svi termini</a>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .search-bar { display:flex; gap:0.5rem; margin-bottom:1.5rem; flex-wrap:wrap; }
+  .search-bar input { flex:1; min-width:200px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>📋 Svi termini</h1>
+  <p>Kompletna lista svih zakazivanja</p>
+</div>
+
+<div class="search-bar">
+  <input type="text" id="search" class="form-control" placeholder="Pretraži po klijentu, frizeru, datumu...">
+</div>
+
+<div class="card" style="padding:0;overflow:hidden">
+  <div class="table-wrap">
+    <table id="appts-table">
+      <thead>
+        <tr>
+          <th>#</th><th>Datum</th><th>Termin</th><th>Klijent</th><th>Frizer</th><th>Usluga</th><th>Cijena</th><th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in appointments %}
+        <tr>
+          <td style="color:var(--text-muted)">{{ a.id }}</td>
+          <td>{{ a.appointment_date }}</td>
+          <td><strong>{{ a.appointment_time }}</strong></td>
+          <td>{{ a.user_name }}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:0.5rem">
+              <div style="width:26px;height:26px;background:linear-gradient(135deg,var(--gold),var(--dark3));border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.75rem;flex-shrink:0">{{ a.worker_name[0] }}</div>
+              {{ a.worker_name }}
+            </div>
+          </td>
+          <td>{{ a.service }}</td>
+          <td style="color:var(--gold);font-weight:700">{{ "%.2f"|format(a.price) }} KM</td>
+          <td><span class="badge badge-{% if a.status == 'zakazano' %}success{% else %}danger{% endif %}">{{ a.status }}</span></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:2rem">Nema termina.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div style="margin-top:0.8rem;font-size:0.8rem;color:var(--text-muted)">
+  Ukupno: <strong style="color:var(--text)">{{ appointments|length }}</strong> termina
+  &nbsp;·&nbsp;
+  Prihod zakazanih: <strong style="color:var(--gold)">{{ "%.2f"|format(appointments | selectattr('status','equalto','zakazano') | sum(attribute='price')) }} KM</strong>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('search').addEventListener('input', function() {
+  const q = this.value.toLowerCase();
+  document.querySelectorAll('#appts-table tbody tr').forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+});
+</script>
+{% endblock %}
